@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt  # ← ИЗМЕНИЛИ: используем bcrypt напрямую
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -13,40 +13,29 @@ from app.models.user import User
 # НАСТРОЙКИ БЕЗОПАСНОСТИ
 # =========================
 
-# Контекст для хеширования паролей (bcrypt)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# OAuth2 схема (говорит FastAPI где брать токен)
+# OAuth2 схема
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 # =========================
-# ФУНКЦИИ ДЛЯ ПАРОЛЕЙ
+# ФУНКЦИИ ДЛЯ ПАРОЛЕЙ (ИЗМЕНИЛИ)
 # =========================
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Проверить пароль
-    
-    Args:
-        plain_password: Пароль который ввёл пользователь
-        hashed_password: Хеш из БД
-    
-    Returns:
-        True если пароль правильный
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(
+        plain_password.encode('utf-8'),
+        hashed_password.encode('utf-8')
+    )
 
 def get_password_hash(password: str) -> str:
     """
     Захешировать пароль
-    
-    Args:
-        password: Обычный пароль
-    
-    Returns:
-        Хеш пароля для хранения в БД
     """
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 # =========================
 # ФУНКЦИИ ДЛЯ JWT ТОКЕНОВ
