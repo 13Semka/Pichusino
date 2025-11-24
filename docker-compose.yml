@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/apps/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=Pichusino_user
+      - POSTGRES_PASSWORD=Pichusino2401
+      - POSTGRES_DB=Pichusino_db
